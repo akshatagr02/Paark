@@ -1,10 +1,10 @@
 
 # 🚗 PAARK – AI-Powered Smart Parking Management App
-<img src="https://img.shields.io/badge/platform-Android-blue.svg" width=50 height = 50>
-![Platform]()
+
+![Platform](https://img.shields.io/badge/platform-Android-blue.svg)
 ![Language](https://img.shields.io/badge/language-Java-yellow.svg)
 ![Firebase](https://img.shields.io/badge/backend-Firebase-orange.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+
 
 ---
 
@@ -58,11 +58,7 @@
 ---
 
 ## 🚀 Screenshots
-
-<!-- > *(To be added)*   -->
-
-
-![new](https://github.com/user-attachments/assets/6ff62360-1727-41e7-90bf-d20d80beb6e1)
+![new](https://github.com/user-attachments/assets/b5d919a8-c52c-4a59-94f6-3b315a4992f4)
 
 
 ---
