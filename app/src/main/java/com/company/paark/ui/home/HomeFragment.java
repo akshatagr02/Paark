@@ -69,11 +69,13 @@ public class HomeFragment extends Fragment {
         HashMap<String,String[]> map = new HashMap();
         mAuth = FirebaseAuth.getInstance();
         ValueEventListener postListener = new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
 //                Toast.makeText(getContext(), "Changed", Toast.LENGTH_SHORT).show();
                 for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
                 Data d = ds.getValue(Data.class);
                 String[] da= {d.state,d.district,d.alpha,d.num,d.iddate.replace("T"," "),d.fddate.replace("T"," "),d.fare,d.vtype, String.valueOf(d.isWithdrawan),d.phoneno};
                     Log.d("hwith", "onDataChange: "+String.valueOf(d.isWithdrawan));

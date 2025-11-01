@@ -1,0 +1,16 @@
+PAARK
+
+This is a Android Project that solves the problem of keeping the receipt after parking your vehicle. This app also provides the parking owner to access the various Facilities such as monitoring from how long the vehicle has been parked, How much money he earned today, yesterday, and others. also helps to calculate the Charges as per duration. App also provide advance Searching Methods to search the Vehicle. I have also integrated the Firebase AI/ML and the Firebase Realtime Database to Manage the Data and fill the vehicle number by clicking the picture of the Number Plate. Also I have Secured the App through Firebase Email/Password Authentication.
+
+How App Works:-
+-> First You upload the details of the vehicle
+-> Then enter the phone number of the customer
+-> Then as you click on the Book button. A Parking code is Generated which is send to the customers that contains his parking details and the code.
+->which is needed to Unpark the Vehicle
+
+
+Skills Used:-
+1. Android Development(JAVA)
+2. Layout Designing
+3. Firebase Database
+4. Firebase Authentication & Firebase AI/ML

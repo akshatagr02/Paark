@@ -84,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5dp"
                 android:foregroundTint="#F10A0A"
-                android:text="Yesterdaty's Earnigs"
+                android:text="Yesterday's Earnigs"
                 android:textColor="#C8595858"
                 android:textSize="22sp"
                 android:textStyle="bold" />

@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.company.paark.ui.Login.MainLogin;
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,7 +37,7 @@ public class Profile extends Fragment {
     private DatabaseReference mPostRefrence;
     private String uid;
     private static  profileData post;
-    private EditText T20,T30,T45,Tperh,F20,F30,F45,Fperh,Tlate,Flate;
+    private EditText T20,T30,T45,TNotime,FNotime,Tperh,F20,F30,F45,Fperh,Tlate,Flate;
 
 
     @Override
@@ -47,12 +48,14 @@ public class Profile extends Fragment {
          T20 = view.findViewById(R.id.p20T);
          T30 = view.findViewById(R.id.p30T);
          T45 = view.findViewById(R.id.p45T);
+         TNotime = view.findViewById(R.id.pNotimeT);
          Tperh = view.findViewById(R.id.perhrT);
          Tlate = view.findViewById(R.id.latefeeT);
 
         F20 = view.findViewById(R.id.p20f);
          F30 = view.findViewById(R.id.p30f);
          F45 = view.findViewById(R.id.p45f);
+         FNotime = view.findViewById(R.id.pNoTimef);
          Fperh = view.findViewById(R.id.perhrf);
          Flate =view.findViewById(R.id.latefeef);
         mPostRefrence = FirebaseDatabase.getInstance().getReference();
@@ -81,14 +84,17 @@ public class Profile extends Fragment {
                 uc.put("T20", T20.getText().toString());
                 uc.put("T30", T30.getText().toString());
                 uc.put("T45", T45.getText().toString());
+                uc.put("TNotime", TNotime.getText().toString());
                 uc.put("Tperh", Tperh.getText().toString());
                 uc.put("f20", F20.getText().toString());
                 uc.put("f30", F30.getText().toString());
                 uc.put("f45", F45.getText().toString());
+                uc.put("FNotime", FNotime.getText().toString());
                 uc.put("fperh", Fperh.getText().toString());
                 uc.put("latefeeT", Tlate.getText().toString());
                 uc.put("latefeeF", Flate.getText().toString());
                 mPostRefrence.child("Pricing").child(uid).updateChildren(uc);
+                Toast.makeText(getContext(), "Data Saved!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -126,6 +132,7 @@ public class Profile extends Fragment {
         T20.setText(post.T20);
         T30.setText(post.T30);
         T45.setText(post.T45);
+        TNotime.setText(post.TNotime);
         Tperh.setText(post.Tperh);
         Tlate.setText(post.Tperh);
         Tlate.setText(post.latefeeT);
@@ -133,6 +140,7 @@ public class Profile extends Fragment {
         F20.setText(post.f20);
         F30.setText(post.f30);
         F45.setText(post.f45);
+        FNotime.setText(post.FNotime);
         Fperh.setText(post.fperh);
         Flate.setText(post.latefeeF);
     }

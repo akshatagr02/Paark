@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -47,6 +48,7 @@ public boolean isUser;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser == null){
 

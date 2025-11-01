@@ -2,6 +2,7 @@ package com.company.paark.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.os.Build;
 import android.renderscript.Sampler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -147,6 +148,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
 //        localDataSet.forEach((n,k)->{
 //            Log.d("on", "onBindViewHolder: "+n);
+                DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
             viewHolder.getCode().setText(keys.get(position));
 //        Log.d("value", "value: "+values.get(position)[1]);
@@ -156,71 +158,95 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
             viewHolder.getPrice().setText(this.values.get(position)[6]+" /-");
             viewHolder.getVtype().setText(this.values.get(position)[7]);
             viewHolder.getCheckBox().setChecked(Boolean.valueOf(values.get(position)[8]));
-//        Log.d("iswith", "onBindViewHolder: "+Boolean.valueOf(values.get(position)[8]));
-//        });
-                DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        viewHolder.getCheckBox().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+
+            if (Boolean.parseBoolean(values.get(position)[8])){
+            viewHolder.getCheckBox().setEnabled(false);
+
+            }else {
+                viewHolder.getCheckBox().setEnabled(true);
+                viewHolder.getCheckBox().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
 
 
 //                boolean isWithdrawan =(viewHolder.getCheckBox().isChecked());
-                Data user = new Data(values.get(position)[0],values.get(position)[1],values.get(position)[2],values.get(position)[3],values.get(position)[4],values.get(position)[5],values.get(position)[6],values.get(position)[7],ischecked(viewHolder),values.get(position)[8]);
-                Map<String, Object> uc = new HashMap<>();
-                Map<String, Object> late = new HashMap<>();
-               uc.put("isWithdrawan",ischecked(viewHolder));
+                        Data user = new Data(values.get(position)[0],values.get(position)[1],values.get(position)[2],values.get(position)[3],values.get(position)[4],values.get(position)[5],values.get(position)[6],values.get(position)[7],ischecked(viewHolder),values.get(position)[8]);
+                        Map<String, Object> uc = new HashMap<>();
+                        Map<String, Object> late = new HashMap<>();
+                        uc.put("isWithdrawan",ischecked(viewHolder));
 
-               TextView text = viewHolder.getDialog().findViewById(R.id.Dialogtext);
-                DashboardFragment homeFragment = new DashboardFragment();
-                Long hrs = Duration.between(LocalDateTime.parse(values.get(position)[5].replace(" ","T")),LocalDateTime.now()).toHours();
+                        TextView text = viewHolder.getDialog().findViewById(R.id.Dialogtext);
+                        DashboardFragment homeFragment = new DashboardFragment();
+                        Long hrs =0L;
+                        if (!Objects.equals(values.get(position)[5], "No time")){
 
-
-            long latefee = 0;
-
-
-                if (ischecked(viewHolder)){
-                    viewHolder.getDialog().show();
-                    if (values.get(position)[7].equals("Four Wheeler")){
-                        latefee =hrs*lateT;
-
-                    }else{
-                        latefee = hrs*lateF;
+                            hrs = Duration.between(LocalDateTime.parse(values.get(position)[5].replace(" ","T")),LocalDateTime.now()).toHours();
 
 
-                    }
-                        text.setText("Late Hours is "+hrs+" Hours"+" Late Fee is "+latefee +"/-");
-                }
 
-                viewHolder.getDialog().findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        uc.put("Latehrs:",0);
+                            long latefee = 0;
 
-                        viewHolder.getDialog().dismiss();
+
+                            if (ischecked(viewHolder)){
+                                viewHolder.getDialog().show();
+                                if (values.get(position)[7].equals("Four Wheeler")){
+                                    latefee =hrs*lateT;
+
+                                }else{
+                                    latefee = hrs*lateF;
+
+
+                                }
+
+
+                                if (hrs<0 || latefee<0){
+                                    latefee = 0;
+                                    hrs = 0L;
+                                    text.setText("No Late Fee");
+                                }else {
+                                    text.setText("Late Hours is "+hrs+" Hours"+" Late Fee is "+latefee +"/-");
+
+                                }
+                            }
+
+                            viewHolder.getDialog().findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    uc.put("Latehrs:",0);
+
+                                    viewHolder.getDialog().dismiss();
+
+                                }
+                            });
+                            long finalLatefee = latefee;
+                            Long finalHrs = hrs;
+                            viewHolder.getDialog().findViewById(R.id.Accept).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    late.put("Late hrs:", finalHrs);
+                                    late.put("LateFee", finalLatefee);
+
+                                    viewHolder.getDialog().dismiss();
+                                    mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).child(String.valueOf(keys.get(position))).updateChildren(late);
+
+                                }
+                            });
+                        }
+                        mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).child(String.valueOf(keys.get(position))).updateChildren(uc);
+
+
+
+                        Log.d("isWithdrawan", "onClick: "+ischecked(viewHolder));
 
                     }
                 });
-                long finalLatefee = latefee;
-                viewHolder.getDialog().findViewById(R.id.Accept).setOnClickListener(new View.OnClickListener() {
-                   @Override
-                   public void onClick(View v) {
-                       late.put("Late hrs:",hrs);
-                       late.put("LateFee", finalLatefee);
+            }
 
-                       viewHolder.getDialog().dismiss();
-                mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).child(String.valueOf(keys.get(position))).updateChildren(late);
-
-                   }
-               });
-                mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).child(String.valueOf(keys.get(position))).updateChildren(uc);
+//        Log.d("iswith", "onBindViewHolder: "+Boolean.valueOf(values.get(position)[8]));
+//        });
 
 
-
-                       Log.d("isWithdrawan", "onClick: "+ischecked(viewHolder));
-
-                    }
-                });
 
 
     }

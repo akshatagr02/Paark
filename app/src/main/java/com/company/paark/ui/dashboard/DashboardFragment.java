@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -21,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -41,6 +43,7 @@ import com.company.paark.profileData;
 import com.company.paark.ui.CameraDetection;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 import com.google.firebase.Firebase;
@@ -51,6 +54,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Struct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -63,13 +67,14 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
 
-    public static boolean ishours = false;
+    public static boolean ishours = false,isNotime = false;
     public boolean isCaptured = false;
     EditText state;
     EditText district;
@@ -87,6 +92,7 @@ public class DashboardFragment extends Fragment {
     }
     private int[] Fare = new int[1];
     CameraDetection cameraDetection;
+    Handler handler = new Handler();
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         DashboardViewModel dashboardViewModel =
@@ -112,6 +118,7 @@ public class DashboardFragment extends Fragment {
         Button calculate = root.findViewById(R.id.calculate);
         Button book = root.findViewById(R.id.Book);
         TextView fare = root.findViewById(R.id.fare);
+        LinearLayout Fdatetime = root.findViewById(R.id.FinalDT);
         Spinner spinner = root.findViewById(R.id.spinner);
         RadioGroup radioGroup = root.findViewById(R.id.radioGroup);
         Calendar mcurrentTime = Calendar.getInstance();
@@ -128,6 +135,7 @@ public class DashboardFragment extends Fragment {
         categories.add("20 min");
         categories.add("30 min");
         categories.add("45 min");
+        categories.add("No time");
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item,categories);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -138,10 +146,21 @@ public class DashboardFragment extends Fragment {
         Log.d("date", "onCreateView1: "+hour+":"+minute+" "+year +  " "+month+":"+day);
 
 
+        Runnable updateTimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // Get current time
+
 
         time.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) );
         date.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+
         fdate.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+
+                handler.postDelayed(this, 1000);
+            }
+        };
+        handler.post(updateTimeRunnable);
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -238,8 +257,15 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 //                Toast.makeText(getContext(), categories.get(position), Toast.LENGTH_SHORT).show();
+if (spinner.getSelectedItem().toString().equals("No time")){
+Fdatetime.setVisibility(View.GONE);
+ isNotime = true;
+}else {
 
-                ftime.setText((LocalDateTime.now().plusMinutes(Long.parseLong(spinner.getSelectedItem().toString().split(" ")[0]))).format(DateTimeFormatter.ofPattern("HH:mm")));
+Fdatetime.setVisibility(View.VISIBLE);
+isNotime = false;
+    ftime.setText((LocalDateTime.now().plusMinutes(Long.parseLong(spinner.getSelectedItem().toString().split(" ")[0]))).format(DateTimeFormatter.ofPattern("HH:mm")));
+}
             }
 
             @Override
@@ -253,18 +279,18 @@ public class DashboardFragment extends Fragment {
                 //Toast.makeText(getContext(), String.valueOf(radioGroup.getCheckedRadioButtonId()), Toast.LENGTH_SHORT).show();
 //                ThreadLocalRandom.current().ints(0,100).distinct().limit(5).forEach(System.out::println);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                if (!isNotime) {
 
 //                    Log.d("dic", "onClick: "+type.get(R.id.FourWheeler)[1]);
 
                         LocalDateTime dateTime1 = LocalDateTime.parse((date.getText().toString() +" "+time.getText().toString()) , DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
                         LocalDateTime dateTime2 = LocalDateTime.parse((fdate.getText().toString() +" "+ftime.getText().toString()) , DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
                         long val = Calculator(dateTime1,dateTime2);
-
+                    Toast.makeText(getContext(), String.valueOf(val), Toast.LENGTH_SHORT).show();
                         if (ishours){
 
 
-                        fare.setText("Total Hours: "+String.valueOf(((val<0)?"Time Not Possible":val))+" and Total Fare: "+((val<0)?0:val)*Fare(radioGroup.getCheckedRadioButtonId(),3)+" /-");
+                        fare.setText("Total Hours: "+String.valueOf(((val<0)?"Time Not Possible":val))+" and Total Fare: "+((val<0)?0:val)*Fare(radioGroup.getCheckedRadioButtonId(),4)+" /-");
                         Log.d("dif", "onClick: "+String.valueOf(val));
                         }else {
 
@@ -274,6 +300,9 @@ public class DashboardFragment extends Fragment {
 //                            Toast.makeText(getContext(),String.valueOf(ishours), Toast.LENGTH_SHORT).show();
 
                     }
+
+                }else {
+                            fare.setText("Fare: "+Fare(radioGroup.getCheckedRadioButtonId(),spinner.getSelectedItemPosition()));
 
                 }
 
@@ -297,11 +326,14 @@ public class DashboardFragment extends Fragment {
                 LocalDateTime dateTime1 = LocalDateTime.parse((date.getText().toString() +" "+time.getText().toString()) , DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
                 LocalDateTime dateTime2 = LocalDateTime.parse((fdate.getText().toString() +" "+ftime.getText().toString()) , DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
                 long val = Calculator(dateTime1,dateTime2);
-                Long Fare1 = (ishours?val*Fare(radioGroup.getCheckedRadioButtonId(),3):Fare(radioGroup.getCheckedRadioButtonId(),spinner.getSelectedItemPosition()));
+                Long Fare1 = (ishours?val*Fare(radioGroup.getCheckedRadioButtonId(),4):Fare(radioGroup.getCheckedRadioButtonId(),spinner.getSelectedItemPosition()));
                 ArrayList<String> message = new ArrayList<>();
-                message.add("You Have Parked Your Vehical for "+val+(ishours?" Hours ":" Minutes")+" from "+dateTime1+" to "+dateTime2 + " vehical number  " +state.getText().toString() +" "+district.getText().toString() +" "+alpha.getText().toString()+" "+number.getText().toString());
+//                message.add("You Have Parked Your Vehical for "+val+(ishours?" Hours ":" Minutes")+" from "+dateTime1+" to "+dateTime2 + " vehical number  " +state.getText().toString() +" "+district.getText().toString() +" "+alpha.getText().toString()+" "+number.getText().toString());
+                  if (!isNotime) message.add("You Have Parked your vehical for "+val+(ishours?" Hours ":" Minutes")+" from "+dateTime1.toString().replace("T"," ")+ " vehical number  " +number.getText().toString());
+                  else message.add("You Have Parked your vehical for "+" on "+dateTime1.toString().replace("T"," ")+ " vehical number  " +number.getText().toString());
                 message.add(" Paid Rs. "+ Fare1);
-                message.add(" Your Parking code is "+ code +"\n DO NOT SHARE THE CODE WITH ANYONE \n PLZ CHECK THAT LAST 4 DIGITS OF THE VEHICAL NUMBER IS CORRECTLY WRITTEN");
+                message.add(" \nYour Parking code is "+ code );
+//                message.add(" Your Parking code is "+ code +"\n DO NOT SHARE THE CODE WITH ANYONE \n PLZ CHECK THAT LAST 4 DIGITS OF THE VEHICAL NUMBER IS CORRECTLY WRITTEN");
 
 //                String msg  ="You Have Parked Your Vehical for "+val+(ishours?" Hours ":" Minutes")+" from "+dateTime1+" to "+dateTime2 + " vehical number  " +state.getText().toString() +" "+district.getText().toString() +" "+alpha.getText().toString()+" "+number.getText().toString()+" Paid Rs. "+ (ishours?val*Fare(radioGroup.getCheckedRadioButtonId(),3):Fare(radioGroup.getCheckedRadioButtonId(),spinner.getSelectedItemPosition()))+" Your Parking code is "+ code +"\n DO NOT SHARE THE CODE WITH ANYONE \n CHECK THAT LAST 4 DIGITS OF THE VEHICAL NUMBER IS CORRECTLY WRITTEN";
                 Log.d("msg", "msg: "+message);
@@ -310,13 +342,26 @@ public class DashboardFragment extends Fragment {
 
                 smsManager.sendMultipartTextMessage(phoneno.getText().toString(),null,message,null,null);
                 Toast.makeText(getContext(), "Message sent", Toast.LENGTH_SHORT).show();
+
                 } catch (Exception e) {
                     Toast.makeText(getContext(), "Error in Sending the Text", Toast.LENGTH_SHORT).show();
                 }
+if(!isNotime){
 
                 database(state.getText().toString(),district.getText().toString(),alpha.getText().toString(),number.getText().toString(),dateTime1.toString(),dateTime2.toString(),code,Fare1.toString(),(radioGroup.getCheckedRadioButtonId()==R.id.TwoWheeler?"Two Wheeler":"Four Wheeler"),false,phoneno.getText().toString());
+}else {
+                database(state.getText().toString(),district.getText().toString(),alpha.getText().toString(),number.getText().toString(),dateTime1.toString(),"No time",code,Fare1.toString(),(radioGroup.getCheckedRadioButtonId()==R.id.TwoWheeler?"Two Wheeler":"Four Wheeler"),false,phoneno.getText().toString());
+
+}
+                    state.setText("");
+                    district.setText("");
+                    alpha.setText("");
+                    number.setText("");
+                    phoneno.setText("");
             }
+
             }
+
         });
         Button capture = root.findViewById(R.id.cap);
         capture.setOnClickListener(new View.OnClickListener() {
@@ -352,10 +397,15 @@ public class DashboardFragment extends Fragment {
                 }
                 else {
                     profileData post= task.getResult().getValue(profileData.class);
-                    int[] two = {Integer.parseInt(post.T20),Integer.parseInt(post.T30),Integer.parseInt(post.T45),Integer.parseInt(post.Tperh)};
-                    int[] four = {Integer.parseInt(post.f20),Integer.parseInt(post.f30),Integer.parseInt(post.f45),Integer.parseInt(post.fperh)};
+                    try {
+
+                    int[] two = {Integer.parseInt(post.T20),Integer.parseInt(post.T30),Integer.parseInt(post.T45),Integer.parseInt(post.TNotime),Integer.parseInt(post.Tperh)};
+                    int[] four = {Integer.parseInt(post.f20),Integer.parseInt(post.f30),Integer.parseInt(post.f45),Integer.parseInt(post.FNotime),Integer.parseInt(post.fperh)};
                     type.put(R.id.TwoWheeler, two);
                     type.put(R.id.FourWheeler, four);
+                    }catch (NullPointerException e){
+                        Snackbar.make(getView(),"No Data Avalaible First Set the data in Profile Page",Snackbar.LENGTH_SHORT).show();
+                    }
 
 
 
@@ -379,7 +429,10 @@ public class DashboardFragment extends Fragment {
 
         }else {
             ishours = true;
-            return hrs;
+            Long min1 = (long) Math.round(((float) min /60));
+
+
+            return min1;
         }
     }
     public void database(String state,String district,String alpha,String num,String iddate,String fddate,String code,String fare,String vtype,Boolean isWithdrawan,String phoneno){
@@ -412,5 +465,12 @@ public class DashboardFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacksAndMessages(null);
     }
 }
